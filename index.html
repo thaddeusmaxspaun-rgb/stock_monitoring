@@ -30,6 +30,20 @@
       }
     }
   </script>
+
+  <style>
+    /* Print / PDF Generation Styles - Ensures Full Uncut Document Render */
+    .pdf-export-mode {
+      max-height: none !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+    .pdf-export-mode .overflow-y-auto,
+    .pdf-export-mode .overflow-x-auto {
+      max-height: none !important;
+      overflow: visible !important;
+    }
+  </style>
 </head>
 <body class="bg-[#e2e8e4] text-slate-800 font-sans min-h-screen p-2 sm:p-4 md:p-6 flex justify-center items-start overflow-y-auto">
 
@@ -159,8 +173,8 @@
         </div>
       </div>
 
-      <!-- Product List Table -->
-      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex-1 flex flex-col">
+      <!-- Product List Table Container -->
+      <div id="tableContainer" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex-1 flex flex-col">
         <div class="p-4 border-b border-slate-100 flex items-center justify-between">
           <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
             <i data-lucide="shopping-bag" class="w-4 h-4 text-emerald-600"></i>
@@ -257,18 +271,18 @@
 
     const defaultImageMap = {
       "keychain strap with belt clip": "https://drive.google.com/file/d/1L1ZU86-K7fXN_SaajiVrMlu20hSap_Dc/view?usp=sharing",
-      "luggage tag": "https://drive.google.com/file/d/1zDVYSu3BRPolT8LuFoySM26jSqzzUTQA/view?usp_drive_link",
+      "luggage tag": "https://drive.google.com/file/d/1zDVYsU3BRPoLt8LuFoySM26jSqzzUTQA/view?usp_drive_link",
       "eyeglasses case": "https://drive.google.com/file/d/1L1ZU86-K7fXN_SaajiVrMlu20hSap_Dc/view?usp=sharing",
-      "bag tag": "https://drive.google.com/file/d/1dESNzayJA-wQ0IKp6m4VTewzLsBmn48/view?usp_drive_link",
-      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp_drive_link",
+      "bag tag": "https://drive.google.com/file/d/1dESNZayJA-wQ0IKp6m4VTewzLsBmn48/view?usp_drive_link",
+      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp=sharing",
       "card holder": "https://drive.google.com/file/d/1PNSqptyw-HWxqQyWKNDlU15XzSzNywCV/view?usp_drive_link",
       "passport holder": "https://drive.google.com/file/d/1hA-eB7UpUogryd11GgzJ9Hpc62ZZUST-/view?usp_drive_link",
       "passport cover": "https://drive.google.com/file/d/1kKhRBuzHl3eqKXJYX7aQX65s3gBmFyZa/view?usp_drive_link",
       "envelope holder": "https://drive.google.com/file/d/1LEJiv7o4nwwyQEzgovPla1jFR1ZNa_Pg/view?usp_drive_link",
-      "utility pouch": "https://drive.google.com/file/d/1Cqpub4YOsInwpGsGoiSY5Anx4ud8TNIl/view?usp_sharing",
+      "utility pouch": "https://drive.google.com/file/d/1Cqpub4YOsInwpGsGoiSY5Anx4ud8TNIl/view?usp=sharing",
       "gift set 1 - light green": "https://drive.google.com/file/d/1ClAG8pxzVEv61SiN4V2Oo7sZP0sHlxq/view?usp_drive_link",
       "gift set 1 - dirty white": "https://drive.google.com/file/d/1z8-IcDtyJUg5AWO4F6cQ_iodRoKhHERgo/view?usp_drive_link",
-      "gift set 1 - white": "https://drive.google.com/file/d/1u_6K4ejjiUnCTWSN_5YtdWHMXaFYZij/view?usp_sharing",
+      "gift set 1 - white": "https://drive.google.com/file/d/1u_6K4ejjiUnCTWSN_5YtdWHMXaFYZij/view?usp=sharing",
       "gift set 1 - light blue": "https://drive.google.com/file/d/1rprWdcqwHMEiZvx2FiGUN7FG8AXWmxkc/view?usp_drive_link"
     };
 
@@ -502,21 +516,32 @@
       }
     }
 
-    // Direct PDF Download Function
+    // Fixed PDF Download Function - Dynamically Unrolls Table & Removes Cutoffs
     function downloadDashboardPDF() {
       const element = document.getElementById('dashboardCard');
+
+      // Temporarily add class to expand all scrollable containers for the PDF render
+      element.classList.add('pdf-export-mode');
+
       const opt = {
-        margin: [0.2, 0.2, 0.2, 0.2],
+        margin: [0.15, 0.15, 0.15, 0.15],
         filename: `MemorABBYlia_Inventory_Report_${new Date().toISOString().slice(0, 10)}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
-      html2pdf().set(opt).from(element).save();
+      html2pdf().set(opt).from(element).save().then(() => {
+        // Remove export mode to restore dashboard UI
+        element.classList.remove('pdf-export-mode');
+      }).catch(err => {
+        element.classList.remove('pdf-export-mode');
+        console.error('PDF export error:', err);
+      });
     }
 
-    // Direct CSV Download Function
+    // CSV Download Function
     function downloadDashboardCSV() {
       if (!liveItems || liveItems.length === 0) {
         alert("No inventory data to download.");
