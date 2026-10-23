@@ -63,14 +63,14 @@
           </nav>
         </div>
 
-        <!-- Category Dropdown Filter Section -->
+        <!-- Category Dropdown Filter Section (Dark Green Button Box Style) -->
         <div class="pt-2">
-          <label for="categoryDropdown" class="block text-[10px] uppercase font-bold text-emerald-400/60 px-3 mb-2 tracking-wider">
-            Filter by Category
+          <label class="block text-[10px] uppercase font-bold text-emerald-400/60 px-3 mb-2 tracking-wider">
+            Categories
           </label>
           <div class="relative px-1">
-            <select id="categoryDropdown" onchange="onCategoryDropdownChange(this.value)" class="w-full bg-[#13352b] text-white text-xs font-semibold rounded-xl p-3 pr-8 border border-emerald-800/60 focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none cursor-pointer shadow-md transition">
-              <option value="ALL">All Categories</option>
+            <select id="categoryDropdown" onchange="onCategoryDropdownChange(this.value)" class="w-full bg-[#13352b] hover:bg-[#173e32] focus:bg-[#173e32] text-white text-xs font-bold rounded-2xl py-3 px-4 pr-10 border border-emerald-800/80 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 appearance-none cursor-pointer shadow-md transition-all duration-200">
+              <option value="ALL" class="bg-[#0c2a21] text-white py-2">All Categories</option>
             </select>
             <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-400">
               <i data-lucide="chevron-down" class="w-4 h-4"></i>
@@ -174,7 +174,7 @@
         </div>
       </div>
 
-      <!-- Webhook Widget (Mobile View Only: Lalabas sa pinakaba sa Mobile) -->
+      <!-- Webhook Widget (Mobile View Only) -->
       <div class="block md:hidden bg-[#13352b] p-3.5 rounded-2xl border border-emerald-800/40">
         <div class="flex items-center justify-between text-xs font-semibold text-emerald-300">
           <span class="flex items-center gap-2">
@@ -245,7 +245,7 @@
       "luggage tag": "https://drive.google.com/file/d/1zDVYSu3BRPolT8LuFoySM26jSqzzUTQA/view?usp_drive_link",
       "eyeglasses case": "https://drive.google.com/file/d/1L1ZU86-K7fXN_SaajiVrMlu20hSap_Dc/view?usp=sharing",
       "bag tag": "https://drive.google.com/file/d/1dESNzayJA-wQ0IKp6m4VTewzLsBmn48/view?usp_drive_link",
-      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp=sharing",
+      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp_drive_link",
       "card holder": "https://drive.google.com/file/d/1PNSqptyw-HWxqQyWKNDlU15XzSzNywCV/view?usp_drive_link",
       "passport holder": "https://drive.google.com/file/d/1hA-eB7UpUogryd11GgzJ9Hpc62ZZUST-/view?usp_drive_link",
       "passport cover": "https://drive.google.com/file/d/1kKhRBuzHl3eqKXJYX7aQX65s3gBmFyZa/view?usp_drive_link",
@@ -254,7 +254,7 @@
       "gift set 1 - light green": "https://drive.google.com/file/d/1ClAG8pxzVEv61SiN4V2Oo7sZP0sHlxq/view?usp_drive_link",
       "gift set 1 - dirty white": "https://drive.google.com/file/d/1z8-IcDtyJUg5AWO4F6cQ_iodRoKhHERgo/view?usp_drive_link",
       "gift set 1 - white": "https://drive.google.com/file/d/1u_6K4ejjiUnCTWSN_5YtdWHMXaFYZij/view?usp=sharing",
-      "gift set 1 - light blue": "https://drive.google.com/file/d/1rprWdcqwHMEiZvx2FiGUN7FG8AXWmxkc/view?usp=sharing"
+      "gift set 1 - light blue": "https://drive.google.com/file/d/1rprWdcqwHMEiZvx2FiGUN7FG8AXWmxkc/view?usp_drive_link"
     };
 
     let liveItems = [];
@@ -336,11 +336,11 @@
         navAll.className = "flex items-center justify-between px-3.5 py-2.5 text-emerald-200/70 hover:text-white hover:bg-[#13352b] font-medium text-xs rounded-xl transition";
       }
 
-      let optionsHTML = `<option value="ALL" ${selectedCategory === 'ALL' ? 'selected' : ''}>All Categories (${liveItems.length})</option>`;
+      let optionsHTML = `<option value="ALL" class="bg-[#0c2a21] text-white py-2" ${selectedCategory === 'ALL' ? 'selected' : ''}>All Categories (${liveItems.length})</option>`;
       
       Object.keys(categories).forEach(catKey => {
         const cat = categories[catKey];
-        optionsHTML += `<option value="${catKey}" ${selectedCategory === catKey ? 'selected' : ''}>${cat.name} (${cat.count})</option>`;
+        optionsHTML += `<option value="${catKey}" class="bg-[#0c2a21] text-white py-2" ${selectedCategory === catKey ? 'selected' : ''}>${cat.name} (${cat.count})</option>`;
       });
 
       dropdown.innerHTML = optionsHTML;
