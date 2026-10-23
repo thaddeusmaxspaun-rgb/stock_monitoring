@@ -63,7 +63,7 @@
           </nav>
         </div>
 
-        <!-- Category Dropdown Filter Section (Dark Green Button Box Style) -->
+        <!-- Category Dropdown Filter Section (Clean Category Names) -->
         <div class="pt-2">
           <label class="block text-[10px] uppercase font-bold text-emerald-400/60 px-3 mb-2 tracking-wider">
             Categories
@@ -245,7 +245,7 @@
       "luggage tag": "https://drive.google.com/file/d/1zDVYSu3BRPolT8LuFoySM26jSqzzUTQA/view?usp_drive_link",
       "eyeglasses case": "https://drive.google.com/file/d/1L1ZU86-K7fXN_SaajiVrMlu20hSap_Dc/view?usp=sharing",
       "bag tag": "https://drive.google.com/file/d/1dESNzayJA-wQ0IKp6m4VTewzLsBmn48/view?usp_drive_link",
-      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp_drive_link",
+      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp=sharing",
       "card holder": "https://drive.google.com/file/d/1PNSqptyw-HWxqQyWKNDlU15XzSzNywCV/view?usp_drive_link",
       "passport holder": "https://drive.google.com/file/d/1hA-eB7UpUogryd11GgzJ9Hpc62ZZUST-/view?usp_drive_link",
       "passport cover": "https://drive.google.com/file/d/1kKhRBuzHl3eqKXJYX7aQX65s3gBmFyZa/view?usp_drive_link",
@@ -254,7 +254,7 @@
       "gift set 1 - light green": "https://drive.google.com/file/d/1ClAG8pxzVEv61SiN4V2Oo7sZP0sHlxq/view?usp_drive_link",
       "gift set 1 - dirty white": "https://drive.google.com/file/d/1z8-IcDtyJUg5AWO4F6cQ_iodRoKhHERgo/view?usp_drive_link",
       "gift set 1 - white": "https://drive.google.com/file/d/1u_6K4ejjiUnCTWSN_5YtdWHMXaFYZij/view?usp=sharing",
-      "gift set 1 - light blue": "https://drive.google.com/file/d/1rprWdcqwHMEiZvx2FiGUN7FG8AXWmxkc/view?usp_drive_link"
+      "gift set 1 - light blue": "https://drive.google.com/file/d/1rprWdcqwHMEiZvx2FiGUN7FG8AXWmxkc/view?usp=sharing"
     };
 
     let liveItems = [];
@@ -336,11 +336,12 @@
         navAll.className = "flex items-center justify-between px-3.5 py-2.5 text-emerald-200/70 hover:text-white hover:bg-[#13352b] font-medium text-xs rounded-xl transition";
       }
 
-      let optionsHTML = `<option value="ALL" class="bg-[#0c2a21] text-white py-2" ${selectedCategory === 'ALL' ? 'selected' : ''}>All Categories (${liveItems.length})</option>`;
+      // Removed numbers from category names in dropdown options
+      let optionsHTML = `<option value="ALL" class="bg-[#0c2a21] text-white py-2" ${selectedCategory === 'ALL' ? 'selected' : ''}>All Categories</option>`;
       
       Object.keys(categories).forEach(catKey => {
         const cat = categories[catKey];
-        optionsHTML += `<option value="${catKey}" class="bg-[#0c2a21] text-white py-2" ${selectedCategory === catKey ? 'selected' : ''}>${cat.name} (${cat.count})</option>`;
+        optionsHTML += `<option value="${catKey}" class="bg-[#0c2a21] text-white py-2" ${selectedCategory === catKey ? 'selected' : ''}>${cat.name}</option>`;
       });
 
       dropdown.innerHTML = optionsHTML;
