@@ -175,7 +175,7 @@
   </div>
 
   <script>
-    // UPDATED WEBHOOK URL
+    // WEBHOOK URL
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzHyf2H6kwWuYZplLq0AXljyGqR6BYLCXNakwQyJ3zo3YBj7zwQTg3agx_ELsELqACnsQ/exec"; 
 
     let liveItems = [];
@@ -334,7 +334,18 @@
         const res = await fetch(`${WEBHOOK_URL}?_t=${Date.now()}`);
         const data = await res.json();
         if (data.items && data.items.length > 0) {
-          liveItems = data.items;
+          // EXPLICIT FILTER: Alisin ang kahit anong row na nabasa bilang "Category" o "Product Name"
+          liveItems = data.items.filter(item => {
+            const cat = (item.category || "").toString().trim().toUpperCase();
+            const sku = (item.sku || "").toString().trim().toUpperCase();
+            const name = (item.name || "").toString().trim().toUpperCase();
+
+            return cat !== "CATEGORY" && 
+                   sku !== "PRODUCT ID (SKU)" && 
+                   name !== "PRODUCT NAME" &&
+                   cat !== "";
+          });
+
           document.getElementById('statusLabel').innerText = "Live Webhook Connected";
           document.getElementById('lastSyncText').innerText = `Synced at ${new Date().toLocaleTimeString()}`;
           renderDashboard();
