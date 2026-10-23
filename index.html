@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MemorABBYlia - Souvenir Inventory Dashboard</title>
   
-  <!-- Tailwind CSS & Lucide Icons -->
+  <!-- Tailwind CSS, Lucide Icons, & html2pdf Library -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -33,7 +34,7 @@
 <body class="bg-[#e2e8e4] text-slate-800 font-sans min-h-screen p-2 sm:p-4 md:p-6 flex justify-center items-start overflow-y-auto">
 
   <!-- Main Container Card -->
-  <div class="w-full max-w-[1440px] bg-[#0c2a21] rounded-[24px] sm:rounded-[32px] p-3 sm:p-4 shadow-2xl flex flex-col md:flex-row gap-4 border border-[#1b4336] my-auto">
+  <div id="dashboardCard" class="w-full max-w-[1440px] bg-[#0c2a21] rounded-[24px] sm:rounded-[32px] p-3 sm:p-4 shadow-2xl flex flex-col md:flex-row gap-4 border border-[#1b4336] my-auto">
     
     <!-- Sidebar / Top Navigation Section -->
     <aside class="w-full md:w-72 bg-[#0c2a21] text-emerald-100 flex flex-col justify-between p-3 sm:p-4 rounded-2xl flex-shrink-0">
@@ -63,7 +64,7 @@
           </nav>
         </div>
 
-        <!-- Category Dropdown Filter Section (Clean Category Names) -->
+        <!-- Category Dropdown Filter Section -->
         <div class="pt-2">
           <label class="block text-[10px] uppercase font-bold text-emerald-400/60 px-3 mb-2 tracking-wider">
             Categories
@@ -98,16 +99,30 @@
     <main class="flex-1 bg-[#f4f7f5] rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 flex flex-col space-y-5">
       
       <!-- Main Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <h2 id="mainHeaderTitle" class="text-xl font-extrabold text-slate-800 tracking-tight">Executive Inventory Summary</h2>
           <p id="mainHeaderSub" class="text-xs text-slate-500 mt-0.5">Pumili ng kategorya sa dropdown o i-click ang produkto para lumaki ang larawan.</p>
         </div>
         
-        <!-- Search Bar -->
-        <div class="relative w-full sm:w-72">
-          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-          <input id="searchInput" type="text" oninput="renderDashboard()" placeholder="Search product name, SKU..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition" />
+        <!-- Search Bar & Action Buttons -->
+        <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+          <div class="relative w-full sm:w-60">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input id="searchInput" type="text" oninput="renderDashboard()" placeholder="Search product name, SKU..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition" />
+          </div>
+
+          <!-- Download Action Buttons -->
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end" data-html2canvas-ignore="true">
+            <button onclick="downloadDashboardPDF()" class="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+              <span>Download PDF</span>
+            </button>
+            <button onclick="downloadDashboardCSV()" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Download CSV</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -245,16 +260,16 @@
       "luggage tag": "https://drive.google.com/file/d/1zDVYSu3BRPolT8LuFoySM26jSqzzUTQA/view?usp_drive_link",
       "eyeglasses case": "https://drive.google.com/file/d/1L1ZU86-K7fXN_SaajiVrMlu20hSap_Dc/view?usp=sharing",
       "bag tag": "https://drive.google.com/file/d/1dESNzayJA-wQ0IKp6m4VTewzLsBmn48/view?usp_drive_link",
-      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp=sharing",
+      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp_drive_link",
       "card holder": "https://drive.google.com/file/d/1PNSqptyw-HWxqQyWKNDlU15XzSzNywCV/view?usp_drive_link",
       "passport holder": "https://drive.google.com/file/d/1hA-eB7UpUogryd11GgzJ9Hpc62ZZUST-/view?usp_drive_link",
       "passport cover": "https://drive.google.com/file/d/1kKhRBuzHl3eqKXJYX7aQX65s3gBmFyZa/view?usp_drive_link",
       "envelope holder": "https://drive.google.com/file/d/1LEJiv7o4nwwyQEzgovPla1jFR1ZNa_Pg/view?usp_drive_link",
-      "utility pouch": "https://drive.google.com/file/d/1Cqpub4YOsInwpGsGoiSY5Anx4ud8TNIl/view?usp=sharing",
+      "utility pouch": "https://drive.google.com/file/d/1Cqpub4YOsInwpGsGoiSY5Anx4ud8TNIl/view?usp_sharing",
       "gift set 1 - light green": "https://drive.google.com/file/d/1ClAG8pxzVEv61SiN4V2Oo7sZP0sHlxq/view?usp_drive_link",
       "gift set 1 - dirty white": "https://drive.google.com/file/d/1z8-IcDtyJUg5AWO4F6cQ_iodRoKhHERgo/view?usp_drive_link",
-      "gift set 1 - white": "https://drive.google.com/file/d/1u_6K4ejjiUnCTWSN_5YtdWHMXaFYZij/view?usp=sharing",
-      "gift set 1 - light blue": "https://drive.google.com/file/d/1rprWdcqwHMEiZvx2FiGUN7FG8AXWmxkc/view?usp=sharing"
+      "gift set 1 - white": "https://drive.google.com/file/d/1u_6K4ejjiUnCTWSN_5YtdWHMXaFYZij/view?usp_sharing",
+      "gift set 1 - light blue": "https://drive.google.com/file/d/1rprWdcqwHMEiZvx2FiGUN7FG8AXWmxkc/view?usp_drive_link"
     };
 
     let liveItems = [];
@@ -336,7 +351,6 @@
         navAll.className = "flex items-center justify-between px-3.5 py-2.5 text-emerald-200/70 hover:text-white hover:bg-[#13352b] font-medium text-xs rounded-xl transition";
       }
 
-      // Removed numbers from category names in dropdown options
       let optionsHTML = `<option value="ALL" class="bg-[#0c2a21] text-white py-2" ${selectedCategory === 'ALL' ? 'selected' : ''}>All Categories</option>`;
       
       Object.keys(categories).forEach(catKey => {
@@ -486,6 +500,39 @@
       } finally {
         icons.forEach(i => i.classList.remove('animate-spin'));
       }
+    }
+
+    // Direct PDF Download Function
+    function downloadDashboardPDF() {
+      const element = document.getElementById('dashboardCard');
+      const opt = {
+        margin: [0.2, 0.2, 0.2, 0.2],
+        filename: `MemorABBYlia_Inventory_Report_${new Date().toISOString().slice(0, 10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+
+    // Direct CSV Download Function
+    function downloadDashboardCSV() {
+      if (!liveItems || liveItems.length === 0) {
+        alert("No inventory data to download.");
+        return;
+      }
+      
+      let csv = "Product ID (SKU),Product Name,Category,In Stock,Reorder Threshold,Status\n";
+      liveItems.forEach(item => {
+        csv += `"${item.sku}","${item.name}","${item.category}",${item.stock},${item.threshold},"${item.status}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `MemorABBYlia_Inventory_Summary_${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
     }
   </script>
 </body>
