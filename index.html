@@ -365,7 +365,11 @@
       const categories = getCategoryData();
       const dropdown = document.getElementById('categoryDropdown');
 
-      document.getElementById('badgeAll').innerText = liveItems.length;
+      // Restored total count badge next to All Products Summary
+      const badgeAll = document.getElementById('badgeAll');
+      if (badgeAll) {
+        badgeAll.innerText = liveItems.length;
+      }
       
       const navAll = document.getElementById('navAll');
       if (selectedCategory === 'ALL') {
