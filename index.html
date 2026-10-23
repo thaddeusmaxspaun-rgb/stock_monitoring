@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MemorABBYlia - Souvenir Inventory Dashboard</title>
+  
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#e2e8e4] text-slate-800 font-sans min-h-screen p-3 md:p-6 flex items-center justify-center">
+
+  <!-- Main Container Card -->
+  <div class="w-full max-w-[1440px] bg-[#0c2a21] rounded-[32px] p-3 md:p-4 shadow-2xl flex flex-col md:flex-row gap-4 overflow-hidden border border-[#1b4336]">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-72 bg-[#0c2a21] text-emerald-100 flex flex-col justify-between p-4 rounded-2xl flex-shrink-0">
+      <div class="space-y-5">
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-3 px-2 pt-2">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-900 font-black shadow-lg">
+            <i data-lucide="boxes" class="w-5 h-5 text-slate-900"></i>
+          </div>
+          <div>
+            <h1 class="text-base font-bold text-white tracking-wide leading-tight">MemorABBYlia</h1>
+            <p class="text-[11px] text-emerald-400 font-medium">Souvenir Inventory</p>
+          </div>
+        </div>
+
+        <!-- Navigation Section -->
+        <div class="pt-2">
+          <p class="text-[10px] uppercase font-bold text-emerald-400/60 px-3 mb-2 tracking-wider">Navigation</p>
+          <nav class="space-y-1">
+            <a href="#" onclick="selectCategory('ALL')" id="navAll" class="flex items-center justify-between px-3.5 py-2.5 bg-[#173e32] text-white font-semibold text-xs rounded-xl shadow-md transition">
+              <span class="flex items-center gap-2.5">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 text-emerald-400"></i>
+                <span>All Products Summary</span>
+              </span>
+              <span id="badgeAll" class="text-[10px] bg-emerald-900/80 text-emerald-300 px-2 py-0.5 rounded-full font-bold">14</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- Categories List in Sidebar -->
+        <div class="pt-2">
+          <p class="text-[10px] uppercase font-bold text-emerald-400/60 px-3 mb-2 tracking-wider">Categories</p>
+          <nav id="sidebarCategoryList" class="space-y-1 max-h-[380px] overflow-y-auto pr-1">
+            <!-- Dynamically populated categories -->
+          </nav>
+        </div>
+      </div>
+
+      <!-- Webhook & Sync Status Widget -->
+      <div class="bg-[#13352b] p-3.5 rounded-2xl border border-emerald-800/40 mt-4">
+        <div class="flex items-center justify-between text-xs font-semibold text-emerald-300">
+          <span class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="statusLabel">Connecting Webhook...</span>
+          </span>
+          <button onclick="syncData()" title="Sync Live Webhook" class="p-1 hover:bg-emerald-800 rounded-lg text-emerald-300 transition">
+            <i data-lucide="refresh-cw" id="syncIcon" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+        <p id="lastSyncText" class="text-[11px] text-emerald-200/60 mt-1">Fetching Google Sheets data...</p>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 bg-[#f4f7f5] rounded-[24px] p-4 sm:p-6 flex flex-col space-y-6 overflow-y-auto max-h-[92vh]">
+      
+      <!-- Main Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+        <div>
+          <h2 id="mainHeaderTitle" class="text-xl font-extrabold text-slate-800 tracking-tight">Executive Inventory Summary</h2>
+          <p id="mainHeaderSub" class="text-xs text-slate-500 mt-0.5">Click any metric card below to filter items (All / In Stock / Reorder Needed).</p>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="relative w-full sm:w-72">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input id="searchInput" type="text" oninput="renderDashboard()" placeholder="Search product name, SKU..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition" />
+        </div>
+      </div>
+
+      <!-- Clickable Interactive KPI Filter Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        
+        <!-- Total Managed Products Card -->
+        <div onclick="setStockFilter('ALL')" id="cardFilterAll" class="p-4 rounded-2xl border cursor-pointer transition-all duration-200 shadow-sm bg-white border-emerald-500 ring-2 ring-emerald-500/20 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Managed Products</span>
+            <div id="metricTotalSkus" class="text-2xl font-black text-slate-800 mt-0.5">14</div>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+            <i data-lucide="package" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Total Stock On Hand Card -->
+        <div onclick="setStockFilter('IN_STOCK')" id="cardFilterStock" class="p-4 rounded-2xl border cursor-pointer transition-all duration-200 shadow-sm bg-white border-slate-100 hover:border-emerald-300 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Stock On Hand</span>
+            <div id="metricTotalStock" class="text-2xl font-black text-slate-800 mt-0.5">1,879</div>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <i data-lucide="package-check" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Critical Need Reorder Card -->
+        <div onclick="setStockFilter('REORDER')" id="cardFilterReorder" class="p-4 rounded-2xl border cursor-pointer transition-all duration-200 shadow-sm bg-white border-slate-100 hover:border-rose-300 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Critical Need Reorder</span>
+            <div id="metricReorderCount" class="text-2xl font-black text-rose-500 mt-0.5">7</div>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center">
+            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Product List Table -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex-1">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <i data-lucide="shopping-bag" class="w-4 h-4 text-emerald-600"></i>
+            <span id="tableTitleText">Product Status - All Products</span>
+          </h3>
+          <span id="tableCountBadge" class="text-xs font-semibold text-slate-500">14 Products</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-100">
+              <tr>
+                <th class="px-4 py-3">Product Name</th>
+                <th class="px-4 py-3">Product ID (SKU)</th>
+                <th class="px-4 py-3">Category</th>
+                <th class="px-4 py-3 text-center">In Stock</th>
+                <th class="px-4 py-3 text-center">Reorder Threshold</th>
+                <th class="px-4 py-3 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody id="skuTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+              <!-- Rows Rendered Via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // OFFICIAL EMBEDDED GOOGLE SHEETS WEBHOOK URL
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbx8kgkuvLJHCNpLEKc1Vrvxvxm_caBc5HFa5dNGh4WKsIgkevHXAxm9B4u9w4VeyEc/exec"; 
+
+    // Complete Master Product List (Local Initial Fallback)
+    const masterDatabase = [
+      { sku: 'KEY-STP-RNDM-CLR-01', name: 'Keychain Strap with Belt Clip', category: 'Leather Goods / Keychains & Key Organizers', stock: 414, threshold: 200, status: 'OK' },
+      { sku: 'TAG-LTH-RNDM-CLR-02', name: 'Luggage Tag', category: 'Leather Goods / Keychains & Key Organizers', stock: 528, threshold: 200, status: 'OK' },
+      { sku: 'GLS-LTH-RNDM-CLR-03', name: 'Eyeglasses Case', category: 'Leather Goods / Keychains & Key Organizers', stock: 89, threshold: 200, status: 'REORDER' },
+      { sku: 'BAG-LTH-RNDM-CLR-04', name: 'Bag Tag', category: 'Leather Goods / Keychains & Key Organizers', stock: 85, threshold: 200, status: 'REORDER' },
+      { sku: 'COP-LTH-RNDM-CLR-05', name: 'Coin Purse', category: 'Leather Goods / Keychains & Key Organizers', stock: 310, threshold: 200, status: 'OK' },
+      { sku: 'CDH-LTH-RNDM-CLR-06', name: 'Card Holder', category: 'Leather Goods / Keychains & Key Organizers', stock: 216, threshold: 200, status: 'OK' },
+      { sku: 'PPH-LTH-RNDM-CLR-07', name: 'Passport Holder', category: 'Leather Goods / Keychains & Key Organizers', stock: 148, threshold: 200, status: 'REORDER' },
+      { sku: 'PPC-LTH-RNDM-CLR-08', name: 'Passport Cover', category: 'Leather Goods / Keychains & Key Organizers', stock: 0, threshold: 200, status: 'REORDER' },
+      { sku: 'EVP-LTH-RNDM-CLR-09', name: 'Envelope Holder', category: 'Leather Goods / Keychains & Key Organizers', stock: 65, threshold: 200, status: 'REORDER' },
+      { sku: 'UTP-LTH-RNDM-CLR-10', name: 'Utility Pouch', category: 'Leather Goods / Keychains & Key Organizers', stock: 24, threshold: 200, status: 'REORDER' },
+      { sku: 'GSB1-LTG-CLR-01', name: 'Gift Set 1 - Light Green', category: 'Gift Set Box', stock: 2, threshold: 20, status: 'REORDER' },
+      { sku: 'GSB1-DTW-CLR-02', name: 'Gift Set 1 - Dirty White', category: 'Gift Set Box', stock: 33, threshold: 20, status: 'OK' },
+      { sku: 'GSB1-PLW-CLR-03', name: 'Gift Set 1 - White', category: 'Gift Set Box', stock: 1, threshold: 1, status: 'OK' },
+      { sku: 'GSB1-LTB-CLR-04', name: 'Gift Set 1 - Light Blue', category: 'Gift Set Box', stock: 42, threshold: 1, status: 'OK' }
+    ];
+
+    let liveItems = [...masterDatabase];
+    let selectedCategory = 'ALL';
+    let selectedStockFilter = 'ALL'; // ALL | IN_STOCK | REORDER
+
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderDashboard();
+      syncData(); // Automatically sync with Google Sheet on load
+    });
+
+    function selectCategory(catName) {
+      selectedCategory = catName;
+      renderDashboard();
+    }
+
+    function setStockFilter(filterType) {
+      selectedStockFilter = filterType;
+      
+      const cardAll = document.getElementById('cardFilterAll');
+      const cardStock = document.getElementById('cardFilterStock');
+      const cardReorder = document.getElementById('cardFilterReorder');
+
+      const activeClass = "p-4 rounded-2xl border cursor-pointer transition-all duration-200 shadow-sm bg-white border-emerald-500 ring-2 ring-emerald-500/20 flex items-center justify-between";
+      const inactiveClass = "p-4 rounded-2xl border cursor-pointer transition-all duration-200 shadow-sm bg-white border-slate-100 hover:border-emerald-300 flex items-center justify-between";
+
+      cardAll.className = filterType === 'ALL' ? activeClass : inactiveClass;
+      cardStock.className = filterType === 'IN_STOCK' ? activeClass : inactiveClass;
+      cardReorder.className = filterType === 'REORDER' ? activeClass : inactiveClass;
+
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      renderSidebarCategories();
+      renderTableAndMetrics();
+
+      const title = document.getElementById('mainHeaderTitle');
+      const sub = document.getElementById('mainHeaderSub');
+      if (selectedCategory === 'ALL') {
+        title.innerText = "Executive Inventory Summary";
+        sub.innerText = "Showing summary and status for all product categories.";
+      } else {
+        title.innerText = selectedCategory;
+        sub.innerText = `Filtered view for items under ${selectedCategory}`;
+      }
+    }
+
+    function getCategoryData() {
+      const categories = {};
+      liveItems.forEach(item => {
+        if (!categories[item.category]) {
+          categories[item.category] = { name: item.category, stock: 0, reorder: 0, count: 0 };
+        }
+        categories[item.category].stock += item.stock;
+        categories[item.category].count += 1;
+        if (item.status === 'REORDER') categories[item.category].reorder += 1;
+      });
+      return categories;
+    }
+
+    function renderSidebarCategories() {
+      const categories = getCategoryData();
+      const sidebarNav = document.getElementById('sidebarCategoryList');
+
+      document.getElementById('badgeAll').innerText = liveItems.length;
+      
+      const navAll = document.getElementById('navAll');
+      if (selectedCategory === 'ALL') {
+        navAll.className = "flex items-center justify-between px-3.5 py-2.5 bg-[#173e32] text-white font-semibold text-xs rounded-xl shadow-md transition";
+      } else {
+        navAll.className = "flex items-center justify-between px-3.5 py-2.5 text-emerald-200/70 hover:text-white hover:bg-[#13352b] font-medium text-xs rounded-xl transition";
+      }
+
+      sidebarNav.innerHTML = Object.keys(categories).map(catKey => {
+        const cat = categories[catKey];
+        const isSelected = selectedCategory === catKey;
+
+        return `
+          <a href="#" onclick="selectCategory('${catKey}')" class="flex items-center justify-between px-3.5 py-2 text-xs rounded-xl transition ${isSelected ? 'bg-[#173e32] text-white font-bold shadow-sm' : 'text-emerald-200/70 hover:text-white hover:bg-[#13352b] font-medium'}">
+            <span class="truncate pr-2">${cat.name}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${isSelected ? 'bg-emerald-900 text-emerald-200' : 'bg-[#13352b] text-emerald-300'}">
+              ${cat.count}
+            </span>
+          </a>
+        `;
+      }).join('');
+    }
+
+    function renderTableAndMetrics() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      
+      const categoryFiltered = liveItems.filter(item => {
+        const matchesCat = selectedCategory === 'ALL' || item.category === selectedCategory;
+        const matchesQuery = item.sku.toLowerCase().includes(query) ||
+                             item.name.toLowerCase().includes(query) ||
+                             item.category.toLowerCase().includes(query);
+        return matchesCat && matchesQuery;
+      });
+
+      const totalStockSum = categoryFiltered.reduce((acc, i) => acc + i.stock, 0);
+      const totalReorderCount = categoryFiltered.reduce((acc, i) => acc + (i.status === 'REORDER' ? 1 : 0), 0);
+
+      document.getElementById('metricTotalSkus').innerText = categoryFiltered.length;
+      document.getElementById('metricTotalStock').innerText = totalStockSum.toLocaleString();
+      document.getElementById('metricReorderCount').innerText = totalReorderCount;
+
+      let tableFiltered = categoryFiltered;
+      let titleSuffix = "All Products";
+
+      if (selectedStockFilter === 'IN_STOCK') {
+        tableFiltered = categoryFiltered.filter(item => item.status === 'OK' && item.stock > 0);
+        titleSuffix = "Stock On Hand Items (OK)";
+      } else if (selectedStockFilter === 'REORDER') {
+        tableFiltered = categoryFiltered.filter(item => item.status === 'REORDER');
+        titleSuffix = "Critical Need Reorder Items";
+      }
+
+      document.getElementById('tableTitleText').innerText = `Product Status - ${titleSuffix}`;
+      document.getElementById('tableCountBadge').innerText = `${tableFiltered.length} Products`;
+
+      const tbody = document.getElementById('skuTableBody');
+      if (tableFiltered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-4 py-8 text-center text-slate-400 font-medium">
+              No matching products found for this filter.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = tableFiltered.map(item => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="px-4 py-3 font-bold text-slate-900">${item.name}</td>
+          <td class="px-4 py-3 font-mono font-semibold text-slate-600">${item.sku}</td>
+          <td class="px-4 py-3 text-slate-500">${item.category}</td>
+          <td class="px-4 py-3 text-center font-extrabold ${item.stock === 0 ? 'text-rose-500' : 'text-slate-800'}">${item.stock}</td>
+          <td class="px-4 py-3 text-center text-slate-400">${item.threshold}</td>
+          <td class="px-4 py-3 text-right">
+            <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase ${item.status === 'REORDER' ? 'bg-rose-100 text-rose-600 border border-rose-200' : 'bg-emerald-100 text-emerald-700 border border-emerald-200'}">
+              ${item.status === 'REORDER' ? 'REORDER' : 'OK'}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function syncData() {
+      if (!WEBHOOK_URL) return;
+      const icon = document.getElementById('syncIcon');
+      icon.classList.add('animate-spin');
+
+      try {
+        const res = await fetch(WEBHOOK_URL);
+        const data = await res.json();
+        if (data.items && data.items.length > 0) {
+          liveItems = data.items;
+          document.getElementById('statusLabel').innerText = "Live Webhook Connected";
+          document.getElementById('lastSyncText').innerText = `Synced at ${new Date().toLocaleTimeString()}`;
+          renderDashboard();
+        }
+      } catch (e) {
+        console.error("Webhook sync error:", e);
+        document.getElementById('statusLabel').innerText = "Webhook Sync Error";
+        document.getElementById('lastSyncText').innerText = "Using cached/local data";
+      } finally {
+        icon.classList.remove('animate-spin');
+      }
+    }
+  </script>
+</body>
+</html>
