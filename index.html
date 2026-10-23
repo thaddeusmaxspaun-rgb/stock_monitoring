@@ -178,7 +178,7 @@
     // LATEST WEBHOOK URL
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzHyf2H6kwWuYZplLq0AXljyGqR6BYLCXNakwQyJ3zo3YBj7zwQTg3agx_ELsELqACnsQ/exec"; 
 
-    // Complete Master Product List (Local Initial Fallback)
+    // Initial Database
     const masterDatabase = [
       { sku: 'KEY-STP-RNDM-CLR-01', name: 'Keychain Strap with Belt Clip', category: 'Leather Goods / Keychains & Key Organizers', stock: 414, threshold: 200, status: 'OK' },
       { sku: 'TAG-LTH-RNDM-CLR-02', name: 'Luggage Tag', category: 'Leather Goods / Keychains & Key Organizers', stock: 528, threshold: 200, status: 'OK' },
@@ -198,12 +198,12 @@
 
     let liveItems = [...masterDatabase];
     let selectedCategory = 'ALL';
-    let selectedStockFilter = 'ALL'; // ALL | IN_STOCK | REORDER
+    let selectedStockFilter = 'ALL';
 
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       renderDashboard();
-      syncData(); // Auto sync on load
+      syncData();
     });
 
     function selectCategory(catName) {
@@ -350,7 +350,6 @@
       icon.classList.add('animate-spin');
 
       try {
-        // Cache-busting timestamp parameter ensures immediate fresh response from Google Sheets
         const res = await fetch(`${WEBHOOK_URL}?_t=${Date.now()}`);
         const data = await res.json();
         if (data.items && data.items.length > 0) {
