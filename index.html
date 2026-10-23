@@ -72,8 +72,8 @@
         </div>
       </div>
 
-      <!-- Webhook & Sync Status Widget -->
-      <div class="bg-[#13352b] p-3.5 rounded-2xl border border-emerald-800/40 mt-4">
+      <!-- Webhook & Sync Status Widget (Placed at the bottom on mobile view) -->
+      <div class="bg-[#13352b] p-3.5 rounded-2xl border border-emerald-800/40 mt-4 order-last md:order-none">
         <div class="flex items-center justify-between text-xs font-semibold text-emerald-300">
           <span class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -371,7 +371,6 @@
         const rawImg = item.imageUrl || defaultImageMap[item.name.toLowerCase()] || '';
         const imgUrl = formatDriveImageUrl(rawImg);
 
-        // Escape SKU for safe onclick passing
         const safeSku = item.sku.replace(/'/g, "\\'");
 
         return `
@@ -402,7 +401,6 @@
       lucide.createIcons();
     }
 
-    // Exact match product lookup by unique SKU
     function openProductModalBySku(sku) {
       const item = liveItems.find(i => i.sku === sku);
       if (!item) return;
