@@ -32,7 +32,7 @@
   </script>
 
   <style>
-    /* Full PDF Export Styles - Force complete table unroll without cutoffs */
+    /* Full PDF Export Styles */
     .pdf-render-mode {
       max-height: none !important;
       height: auto !important;
@@ -132,7 +132,14 @@
         <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
           <div class="relative w-full sm:w-60">
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-            <input id="searchInput" type="text" oninput="renderDashboard()" placeholder="Search product name, SKU..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition" />
+            <input 
+              id="searchInput" 
+              type="text" 
+              oninput="renderDashboard()" 
+              onkeydown="handleSearchKey(event)"
+              placeholder="Search product name, SKU..." 
+              class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition" 
+            />
           </div>
 
           <!-- Download Action Buttons -->
@@ -266,8 +273,10 @@
   </div>
 
   <script>
-    // WEBHOOK URL
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzHyf2H6kwWuYZplLq0AXljyGqR6BYLCXNakwQyJ3zo3YBj7zwQTg3agx_ELsELqACnsQ/exec"; 
+
+    // General fallback image for items without explicit Google Drive link
+    const DEFAULT_PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500&q=80";
 
     function formatDriveImageUrl(url) {
       if (!url) return '';
@@ -283,7 +292,7 @@
       "luggage tag": "https://drive.google.com/file/d/1zDVYsU3BRPoLt8LuFoySM26jSqzzUTQA/view?usp_drive_link",
       "eyeglasses case": "https://drive.google.com/file/d/1L1ZU86-K7fXN_SaajiVrMlu20hSap_Dc/view?usp=sharing",
       "bag tag": "https://drive.google.com/file/d/1dESNZayJA-wQ0IKp6m4VTewzLsBmn48/view?usp_drive_link",
-      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp=sharing",
+      "coin purse": "https://drive.google.com/file/d/1a-U7b--NHzq1ZqvookQTRi40lNcLIlbk/view?usp_drive_link",
       "card holder": "https://drive.google.com/file/d/1PNSqptyw-HWxqQyWKNDlU15XzSzNywCV/view?usp_drive_link",
       "passport holder": "https://drive.google.com/file/d/1hA-eB7UpUogryd11GgzJ9Hpc62ZZUST-/view?usp_drive_link",
       "passport cover": "https://drive.google.com/file/d/1kKhRBuzHl3eqKXJYX7aQX65s3gBmFyZa/view?usp_drive_link",
@@ -291,7 +300,7 @@
       "utility pouch": "https://drive.google.com/file/d/1Cqpub4YOsInwpGsGoiSY5Anx4ud8TNIl/view?usp=sharing",
       "gift set 1 - light green": "https://drive.google.com/file/d/1ClAG8pxzVEv61SiN4V2Oo7sZP0sHlxq/view?usp_drive_link",
       "gift set 1 - dirty white": "https://drive.google.com/file/d/1z8-IcDtyJUg5AWO4F6cQ_iodRoKhHERgo/view?usp_drive_link",
-      "gift set 1 - white": "https://drive.google.com/file/d/1u_6K4ejjiUnCTWSN_5YtdWHMXaFYZij/view?usp=sharing",
+      "gift set 1 - white": "https://drive.google.com/file/d/1u_6K4ejjiUnCTWSN_5YtdWHMXaFYZij/view?usp_sharing",
       "gift set 1 - light blue": "https://drive.google.com/file/d/1rprWdcqwHMEiZvx2FiGUN7FG8AXWmxkc/view?usp_drive_link"
     };
 
@@ -303,6 +312,13 @@
       lucide.createIcons();
       syncData();
     });
+
+    // Dismiss keyboard when user presses Enter/Return key
+    function handleSearchKey(event) {
+      if (event.key === 'Enter' || event.keyCode === 13) {
+        event.target.blur();
+      }
+    }
 
     function selectCategory(catName) {
       selectedCategory = catName;
@@ -365,7 +381,6 @@
       const categories = getCategoryData();
       const dropdown = document.getElementById('categoryDropdown');
 
-      // Restored total count badge next to All Products Summary
       const badgeAll = document.getElementById('badgeAll');
       if (badgeAll) {
         badgeAll.innerText = liveItems.length;
@@ -386,6 +401,12 @@
       });
 
       dropdown.innerHTML = optionsHTML;
+    }
+
+    function getItemImageUrl(item) {
+      const rawImg = item.imageUrl || defaultImageMap[item.name.toLowerCase()] || '';
+      if (!rawImg) return DEFAULT_PLACEHOLDER_IMAGE;
+      return formatDriveImageUrl(rawImg);
     }
 
     function renderTableAndMetrics() {
@@ -433,21 +454,13 @@
       }
 
       tbody.innerHTML = tableFiltered.map((item) => {
-        const rawImg = item.imageUrl || defaultImageMap[item.name.toLowerCase()] || '';
-        const imgUrl = formatDriveImageUrl(rawImg);
-
+        const imgUrl = getItemImageUrl(item);
         const safeSku = item.sku.replace(/'/g, "\\'");
 
         return `
           <tr onclick="openProductModalBySku('${safeSku}')" class="hover:bg-emerald-50/60 transition cursor-pointer group">
             <td class="px-4 py-2.5 text-center">
-              ${imgUrl ? `
-                <img src="${imgUrl}" alt="${item.name}" class="w-10 h-10 object-cover rounded-xl border border-slate-200 shadow-sm group-hover:scale-110 transition mx-auto" />
-              ` : `
-                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
-                  <i data-lucide="image" class="w-4 h-4"></i>
-                </div>
-              `}
+              <img src="${imgUrl}" alt="${item.name}" class="w-10 h-10 object-cover rounded-xl border border-slate-200 shadow-sm group-hover:scale-110 transition mx-auto" />
             </td>
             <td class="px-4 py-3 font-bold text-slate-900 group-hover:text-emerald-700 transition">${item.name}</td>
             <td class="px-4 py-3 font-mono font-semibold text-slate-600">${item.sku}</td>
@@ -470,10 +483,9 @@
       const item = liveItems.find(i => i.sku === sku);
       if (!item) return;
 
-      const rawImg = item.imageUrl || defaultImageMap[item.name.toLowerCase()] || '';
-      const imgUrl = formatDriveImageUrl(rawImg);
+      const imgUrl = getItemImageUrl(item);
 
-      document.getElementById('modalImg').src = imgUrl || 'https://via.placeholder.com/300?text=No+Image';
+      document.getElementById('modalImg').src = imgUrl;
       document.getElementById('modalTitle').innerText = item.name;
       document.getElementById('modalCategory').innerText = item.category;
       document.getElementById('modalSku').innerText = `SKU: ${item.sku}`;
@@ -529,12 +541,10 @@
       }
     }
 
-    // Fully Fixed PDF Download Function - Forces Single Continuous Document Output
     function downloadDashboardPDF() {
       const element = document.getElementById('dashboardCard');
       const scrollArea = document.getElementById('tableScrollArea');
 
-      // Unroll element & remove fixed height
       element.classList.add('pdf-render-mode');
       if (scrollArea) {
         scrollArea.style.maxHeight = 'none';
@@ -551,7 +561,6 @@
       };
 
       html2pdf().set(opt).from(element).save().then(() => {
-        // Restore scrollable state for standard web interface
         element.classList.remove('pdf-render-mode');
         if (scrollArea) {
           scrollArea.style.maxHeight = '500px';
@@ -567,7 +576,6 @@
       });
     }
 
-    // CSV Download Function
     function downloadDashboardCSV() {
       if (!liveItems || liveItems.length === 0) {
         alert("No inventory data to download.");
