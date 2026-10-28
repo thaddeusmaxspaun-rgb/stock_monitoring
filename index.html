@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MemorABBYlia - Souvenir Inventory Dashboard</title>
   
-  <!-- Tailwind CSS, Lucide Icons, & html2pdf Library -->
+  <!-- Tailwind CSS, Lucide Icons, html2pdf, & HTML5 QR Code Scanner -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 
   <script>
     tailwind.config = {
@@ -50,6 +51,13 @@
     .pdf-render-mode tr {
       page-break-inside: avoid !important;
       break-inside: avoid !important;
+    }
+
+    /* Video element fix for QR scanner */
+    #qr-reader video {
+      width: 100% !important;
+      height: auto !important;
+      border-radius: 0.75rem;
     }
   </style>
 </head>
@@ -125,9 +133,9 @@
           <p id="mainHeaderSub" class="text-xs text-stone-500 mt-0.5">Pumili ng kategorya sa dropdown o i-click ang produkto para lumaki ang larawan.</p>
         </div>
         
-        <!-- Search Bar & Action Buttons -->
+        <!-- Search Bar, QR Scanner & Action Buttons -->
         <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-          <div class="relative w-full sm:w-60">
+          <div class="relative w-full sm:w-56">
             <i data-lucide="search" class="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
             <input 
               id="searchInput" 
@@ -138,6 +146,12 @@
               class="w-full bg-[#fff7f4] border border-[#f2ded6] rounded-xl pl-9 pr-4 py-2 text-xs text-stone-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#c86d51]/20 focus:border-[#c86d51] transition" 
             />
           </div>
+
+          <!-- QR Scan Button -->
+          <button onclick="startQRScanner()" class="px-3 py-2 bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
+            <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
+            <span>Scan QR</span>
+          </button>
 
           <!-- Download Action Buttons -->
           <div class="flex items-center gap-2 w-full sm:w-auto justify-end" data-html2canvas-ignore="true">
@@ -269,6 +283,26 @@
     </div>
   </div>
 
+  <!-- Live Camera QR Scanner Modal -->
+  <div id="qrScannerModal" onclick="stopQRScanner()" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="bg-white rounded-3xl p-5 max-w-sm w-full text-center border border-[#f2ded6] shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-extrabold text-stone-900 flex items-center gap-2">
+          <i data-lucide="qr-code" class="w-4 h-4 text-[#c86d51]"></i>
+          <span>Scan Product QR Code</span>
+        </h3>
+        <button onclick="stopQRScanner()" class="p-1 rounded-full bg-[#fff7f4] text-stone-500 hover:text-stone-800">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="qr-reader" class="w-full bg-[#fff7f4] rounded-2xl overflow-hidden border border-[#f2ded6] p-1"></div>
+      <p class="text-[11px] text-stone-400 mt-3">Itapat ang QR Code ng produkto sa camera para awtomatikong lumabas ang stock info.</p>
+      <button onclick="stopQRScanner()" class="mt-4 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl w-full transition">
+        Close Camera
+      </button>
+    </div>
+  </div>
+
   <script>
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzHyf2H6kwWuYZplLq0AXljyGqR6BYLCXNakwQyJ3zo3YBj7zwQTg3agx_ELsELqACnsQ/exec"; 
 
@@ -304,6 +338,7 @@
     let liveItems = [];
     let selectedCategory = 'ALL';
     let selectedStockFilter = 'ALL';
+    let html5QrCode = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide) {
@@ -489,8 +524,11 @@
     }
 
     function openProductModalBySku(sku) {
-      const item = liveItems.find(i => i.sku === sku);
-      if (!item) return;
+      const item = liveItems.find(i => i.sku.toLowerCase() === sku.toLowerCase());
+      if (!item) {
+        alert(`Walang nahanap na produkto para sa SKU: ${sku}`);
+        return;
+      }
 
       const imgUrl = getItemImageUrl(item);
 
@@ -518,6 +556,59 @@
 
     function closeImageModal() {
       const modal = document.getElementById('imageModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    /* --- QR Scanner Functions --- */
+    function startQRScanner() {
+      const modal = document.getElementById('qrScannerModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      html5QrCode = new Html5Qrcode("qr-reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 200, height: 200 } },
+        (decodedText) => {
+          const scannedSku = decodedText.trim();
+          stopQRScanner();
+
+          const searchInput = document.getElementById('searchInput');
+          if (searchInput) {
+            searchInput.value = scannedSku;
+            renderDashboard();
+          }
+
+          openProductModalBySku(scannedSku);
+        },
+        (errorMessage) => {
+          // Continuous scanning errors ignored
+        }
+      ).catch(err => {
+        console.error("Camera access error:", err);
+        alert("Hindi ma-access ang camera. Siguraduhing pinayagan ang camera permission sa browser.");
+        stopQRScanner();
+      });
+    }
+
+    function stopQRScanner() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          html5QrCode.clear();
+          closeQRModal();
+        }).catch(err => {
+          closeQRModal();
+        });
+      } else {
+        closeQRModal();
+      }
+    }
+
+    function closeQRModal() {
+      const modal = document.getElementById('qrScannerModal');
       if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
